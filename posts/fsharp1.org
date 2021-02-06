@@ -1,0 +1,298 @@
+#+hugo_base_dir: ../../
+#+hugo_weight: 2001
+#+hugo_auto_set_lastmod: t
+#+title: F# 2D Arrays (and Tic-tac-toe) Part 1
+#+date: 2021-02-02
+#+author: Mike Wright
+#+hugo_tags: functional learning programming
+#+hugo_categories: "Arch Linux" Emacs fsharp
+#+hugo_menu: :menu "main" :weight 2001
+#+hugo_custom_front_matter: :foo bar :baz zoo :alpha 1 :beta "two words" :gamma 10
+#+hugo_draft: false
+[[file:fsharp64x64.png]]
+** Intro.
+~[Using Arch Linux/Emacs/fsharp-mode for application development]~
+
+[Motivation] Some colleagues and I recently decided to learn the [[https://en.wikipedia.org/wiki/F_Sharp_(programming_language)][F# programming language]] and I proposed to start with implementing tic-tac-toe.
+We used to get together face-to-face, but with the pandemic, we've been meeting virtually.
+
+I plan to follow-up with machine learning to make an AI to learn how to play tic-tac-toe,
+but for now I am using tic-tac-toe as a simple domain, just for learning some F# basics.
+
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Background:                                                                                                                                                                                                                                                                                                                                                                             |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Many of my colleagues are currently using Scala for their day jobs. While I haven't yet used Scala "in anger," I have had some practical experience with various Lisp dialects. Most of us have a strong Java (Enterprise) background.  Some of us spent time in 2020 learning the [[https://en.wikipedia.org/wiki/Rust_(programming_language)][Rust programming language]] /(and I'm still trying to master it, e.g., for embedded [[https://en.wikipedia.org/wiki/RISC-V][RISC-V]] projects)/. |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  
+For this blog post, I just wanted to share what I did while starting to learn F#.
+
+I don't yet know enough to write /idiomatic/ F# code /(and I do not have any .NET or C# background to draw on either)/.
+Here are some high level steps, which assume some experience with [[https://archlinux.org/][Arch Linux]] and [[https://www.gnu.org/software/emacs/][Emacs]].
+(I won't go into details here about the prerequsites, like installing the Arch Linux [[https://github.com/Jguer/yay][~yay~]] AUR helper tool,
+or configuring Emacs with [[https://github.com/jwiegley/use-package][~use-package~]].)
+
+To keep things simpler for now, I will start with just an F# script file and defer using things like [[https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/modules][~modules~]] or the many [[https://github.com/fsprojects/awesome-fsharp#-awesome-f][/awesome/ ~frameworks or libraries~]].
+** Setup
+*** Install F# on Arch Linux
+**** Packages
+At a user mode terminal prompt I installed the AUR package [[https://aur.archlinux.org/packages/fsharp/][~fsharp~]] and the Arch Linux packages [[https://archlinux.org/packages/community/x86_64/dotnet-runtime/][~dotnet-runtime~]] and [[https://archlinux.org/packages/community/x86_64/dotnet-sdk/][~dotnet.sdk~]].
+#+BEGIN_SRC shell
+
+  yay -Sy fsharp
+  sudo pacman -Sy dotnet-runtime dotnet-sdk
+
+#+END_SRC
+**** Verification
+I then used ~echo~ to create a ~hello.fsx~ file and used the ~dotnet~ command with the ~fsi~ option and the file name argument to run it.
+#+BEGIN_SRC shell
+
+  echo 'printfn "hello F#"' > hello.fsx
+  dotnet fsi hello.fsx
+
+  hello F#
+
+#+END_SRC
+**** Interactivity
+To try out the interactive shell, I used the ~dotnet~ command with the ~fsi~ option and no other arguments.
+{{< highlight plaintext >}}     
+
+  dotnet fsi
+
+  Microsoft (R) F# Interactive version 10.7.0.0 for F# 4.7
+  Copyright (c) Microsoft Corporation. All Rights Reserved.
+
+  For help type #help;;
+
+  >
+
+{{< / highlight >}}  
+(I used Ctrl-d to exit.)
+*** Install fsharp-mode
+Having my Emacs ~package-system~ initialized with ~MELPA~ configured and ~use-package~ installed, I installed ~fsharp-mode~.
+#+BEGIN_SRC elisp
+
+  (use-package fsharp-mode
+    :ensure t)
+
+#+END_SRC
+*** Verify fsharp-mode
+I edited my /hello.fsx/ file from above, turned on fsharp-mode via ~M-x fsharp-mode~, and then used ~C-c C-c~ (a.k.a. ~M-x compile~)
+to generate a /hello.exe/ executable.
+When I did this, the Emacs minibuffer prompts for confirmation of the compile command including the source path:
+
+#+begin_src bash
+
+  Compile command: /usr/bin/fsharpc --nologo /home/mike/sandbox/hello.fsx
+
+#+end_src
+After hitting enter to confirm, I switched to a terminal (e.g., ~M-x shell~).
+Running the newly produced executable, via ~./hello.exe~ from the /bash/ terminal prompt,
+produced ~"Hello F#"~ as expected.
+
+Interestingly, the Linux command ~file hello.exe~ classified the executable as:
+{{< highlight plaintext >}}
+
+  hello.exe: PE32 executable (console) Intel 80386 Mono/.Net assembly, for MS Windows
+  
+{{< / highlight >}}
+/(I'm not sure what the "for MS Windows" at the end means since this is running on Linux;
+also, the "PE32" is interesting, given that I'm running this ~.exe~ file on 64-bit Linux.)/
+** First Pass - Option<char>
+I started with the idea of using an F# ~Option<char>~ type to represent empty, X, and O squares.
+*** Initializing
+Here's how I created a representation of the intially empty tic-tac-toe board.
+I used emacs to create an F# script file called /ttt.fsx/ and then enabled F# editing of it via: ~M-x fsharp-mode~.
+
+The ~let~ expression initializes /tttBoard/ to be a zeroed-out 3 by 3 2D array of ~Option<char>~, whose default value for each square is ~None~.
+#+BEGIN_SRC fsharp
+
+  let tttBoard = Array2D.zeroCreate<Option<char>> 3 3
+
+#+END_SRC
+*** Displaying values
+I displayed the array by evaluating this expression in fsharp-mode,
+e.g., by using ~C-c C-e~, or ~M-x fsharp-eval-phrase~, with the cursor at end of the expression.
+#+BEGIN_SRC fsharp
+
+  tttBoard
+
+#+END_SRC
+Then, in the Emacs ~*inferior-fsharp*~ buffer, I found this output:
+#+begin_src 
+
+> val it : Option<char> [,] = [[None; None; None]
+                             [None; None; None]
+                             [None; None; None]]
+
+#+end_src
+I created a helper functions to print the tic-tac-toe board:
+#+begin_src fsharp
+
+  let decodeSquare maybeOX =
+      match maybeOX with
+      | Some c -> c
+      | None -> ' '
+
+  let printRow (row:Option<char>[]) =
+      printfn "%c|%c|%c"
+      (decodeSquare row.[0])
+      (decodeSquare row.[1])
+      (decodeSquare row.[2])
+
+  let printSep () =
+      printfn "-+-+-"
+
+  let printBoard (board:Option<char>[,]) =
+      printfn ""
+      printRow board.[0,*]
+      printSep()
+      printRow board.[1,*]
+      printSep()
+      printRow board.[2,*]
+
+#+end_src
+To display the board I evaluated this expression
+#+begin_src fsharp
+
+  printBoard tttBoard
+
+#+end_src
+and then the Emacs ~*inferior-fsharp*~ buffer showed this output:
+#+begin_src 
+
+    > 
+     | | 
+    -+-+-
+     | | 
+    -+-+-
+     | | 
+    val it : unit = ()
+
+#+end_src
+*** Processing values
+I put an 'X' into the center square using the F# assignment operator with a Some and its value:
+#+begin_src fsharp
+
+tttBoard.[1,1] <- Some 'X'
+
+#+end_src
+Then when I printed the board again, I saw:
+#+begin_src
+
+  > 
+   | | 
+  -+-+-
+   |X| 
+  -+-+-
+   | | 
+  val it : unit = ()
+
+#+end_src
+So how could I count the X squares and O squares in the board?
+My approach was to process the board as a sequence, explicitly casting each square to an ~Option<char>~,
+filtering out the desired X or O squares, and taking the resulting sequence lengths to be the count of each non-empty squares.
+#+begin_src fsharp
+
+  tttBoard
+  |> Seq.cast<Option<char>>
+  |> Seq.filter (fun c -> c = Some 'X')
+  |> Seq.length
+
+  tttBoard
+  |> Seq.cast<Option<char>>
+  |> Seq.filter (fun c -> c = Some 'O')
+  |> Seq.length
+
+#+end_src
+When I marked the region in Emacs to include the two expression (8 nonblank lines) above, and then used ~C-c C-r~, or ~M-x fsharp-eval-region~,
+to evaluate the region, I got:
+#+begin_src 
+
+  > val it : int = 1
+
+  > val it : int = 0
+
+#+end_src
+This shows that there was one X square and zero O squares in /tttBoard/.
+** Second pass - Enum
+So my colleagues and I walked through the above during our virtual meeting and the consensus was that I should use an ~enum~ /type/ instead of an ~Option~.
+I have to admit that my use of the ~Option<char>~ type proved to be error-prone, as I accidently started incorrectly using ~Some 'Y'~ instead of ~Some 'O'~ when
+cutting and pasting ~Some 'X'~ expressions.
+*** Initializing
+My second approach to creating an empty board was to define a ~Square~ /enum/ that has three possible explicit character values, X, 0, or a space.
+/(Note that an F# ~enum~ differs from a ~union~ by having explicit initializers for each value.  For display purposes, the values come in handy.)/
+
+Unfortunately, the ~enum~ type doesn't use the space character as a default, or "zero," value, so instead of using ~Array2D.zeroCreate~,
+I used ~Array2D.init~ -- passing in an anonymous function to set each square to Empty (for display purposes, a /space/ character).
+#+begin_src fsharp
+
+  type Square = O = 'O'
+              | X = 'X'
+              | Empty = ' '
+  let tttBoard = Array2D.init 3 3 (fun _ _ -> Square.Empty)
+
+#+end_src
+BTW, I could also have defined an /enum/ with 2 character values, X and O, and then wrapped that in an /Option/, in order to represent an empty square as a /None/.
+*** Displaying values
+I evaluated this expression to show the contents of the element of the 2D array:
+#+begin_src fsharp
+
+  tttBoard.[0,0]
+
+#+end_src
+The ~*inferior-fsharp*~ buffer showed it was an ~Empty~ square.
+#+begin_src 
+
+  > val it : Square = Empty {value__ = ' ';}
+
+#+end_src
+To show just the /value/ of the first 2D array element I evaluated this ~unbox<char>~ expression:
+#+begin_src fsharp
+
+  unbox<char> tttBoard.[0,0]
+
+#+end_src
+The ~*inferior-fsharp*~ buffer showed it was a space character.
+#+begin_src
+
+  > val it : char = ' '
+
+#+end_src
+*** Processing values
+I then changed the first square from an /Empty/ to an /X/ and showed its value by evaluating this region:
+#+begin_src fsharp
+
+  tttBoard.[0,0] <- Square.X
+  unbox<char> tttBoard.[0,0]
+
+#+end_src
+The ~*inferior-fsharp*~ buffer showed it was now an X character.
+#+begin_src
+
+  > val it : char = 'X'
+
+#+end_src
+** What's next?
+*** Part 2
+    Up next, taking turns filling in Xs and Os until there is a winner or (more likely) a tie.
+** Resources
+*** Online Doc
+- [[https://en.wikipedia.org/wiki/Tic-tac-toe][Tic-tac-toe (Wikipedia)]]
+- [[https://fsharp.org/docs/][Documentation for F# (F# Foundation)]]
+- [[https://docs.microsoft.com/en-us/dotnet/fsharp/][F# documentation (Microsoft)]]
+- [[https://fsharpforfunandprofit.com/][F# for fun and profit (by Scott Wlaschin)]]
+- [[https://learnxinyminutes.com/docs/fsharp/][Learn X in Y minutes (Where X=F#)]]
+- [[https://dungpa.github.io/fsharp-cheatsheet/][F# Cheatsheet]]
+*** Books
+- [[https://www.manning.com/books/get-programming-with-f-sharp][Get Programming with F# (A guide for .NET developers)]]
+- [[https://pragprog.com/titles/swdddf/domain-modeling-made-functional/][Domain Modeling Made Functional (Tackle Software Complexity with Domain-Driven Design and F#)]]
+- [[https://smile.amazon.com/gp/product/B005HHYIWC/ref=ppx_yo_dt_b_d_asin_title_o00?ie=UTF8&psc=1][Friendly F# (Fun with game programming Book 1) Kindle Edition]]
+*** Apparel?
+- [[https://smile.amazon.com/Funny-Programming-Programmer-Humor-T-Shirt/dp/B081H5GVRH/][F Pound Programmer t-shirt]]
+- [[https://store.dotnetfoundation.org/dotnetfoundation/apparel-unisex/save-the-day-with-f-unisex-tee/61783][Super F# t-shirt]]
+* Footnotes
+* COMMENT Local Variables                                           :ARCHIVE:
+  # Local Variables:
+  # org-hugo-footer: "\n\n[//]: # "Exported with love from a post written in Org mode"\n[//]: # "- https://github.com/kaushalmodi/ox-hugo""
+  # End:

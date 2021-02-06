@@ -1,0 +1,43 @@
+#+hugo_base_dir: ../../
+#+hugo_weight: 2001
+#+hugo_auto_set_lastmod: t
+#+title: Why Learn F#
+#+date: 2021-02-02
+#+author: Mike Wright
+#+hugo_tags: learning functional programming
+#+hugo_categories: fsharp
+#+hugo_menu: :menu "main" :weight 2001
+#+hugo_custom_front_matter: :foo bar :baz zoo :alpha 1 :beta "two words" :gamma 10
+#+hugo_draft: false
+[[file:fsharp64x64.png]]
+** Intro.
+My inspiration for learning F# came from reading a blog post explaining [[https://fsharpforfunandprofit.com/posts/fsharp-is-the-best-enterprise-language/]["Why F# is the best enterprise language."]]
+Even though I am out of the Enterprise Software Development game now (currently focused on embedded RISC-V Rust projects),
+
+I've studied many programming languages during my professional software development career. I really enjoy learning different
+approaches to problem solving.
+
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Background:                                                                                                                                                                                                                                                                                                                                                                                     |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| I once took a brief look at F# after it first came out, but didn't pursue it at the time. (I was too invested in the Java ecosystem, and being a Linux fan, I didn't really buy into .NET.  The early release of mono was eyed with the suspicion that Microsoft could kill it.) After spending a little time studying Scala and Haskell many years ago, F# is much more interesting to me now. |
+|                                                                                                                                                                                                                                                                                                                                                                                                 |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+F# seems to be more practical than Haskell yet easier to learn than Scala (in my opinion, so far).
+At least I'm enjoying learning F# more than many languages I've tried.
+Part of a more enjoyable experience is better F# tools and editor support.
+I'm wondering if I can use it successfully for machine learning.
+** Uses
+** Benefits
+** Topics
+** Resources
+*** Web
+- well
+*** Books
+- yeah
+* Footnotes
+* COMMENT Local Variables                                           :ARCHIVE:
+# Local Variables:
+# org-hugo-footer: "\n\n[//]: # "Exported with love from a post written in Org mode"\n[//]: # "- https://github.com/kaushalmodi/ox-hugo""
+# End:

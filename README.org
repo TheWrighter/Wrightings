@@ -1,0 +1,7 @@
+* TheWrighter/Wrighings/README.org
+** content submodule
+** setup/usage - see TheWrighter/blog-base/README.org
+** maintenance
+*** customization  changes (css, templates) are done in TheWrighter/base-blog directories
+*** content changes (org file posts) are done in this repo, posts directory
+*** no changes should be made to the theme submodule
